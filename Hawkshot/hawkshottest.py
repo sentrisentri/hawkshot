@@ -293,5 +293,4 @@ async def check_account():
         await asyncio.sleep(20)
 
 
-client.run(
-    'MTA2NjA4ODAyMzIyNzM3NTY0Ng.GaUqcI.rNbc31XADIjltxy15k6BKu-n-GeWjoFt9vtZXI')
+client.run('MTA2NjA4ODAyMzIyNzM3NTY0Ng.GWNTx7.votcwl5vzbHssglJ0EArPIPsA-H9aDsqiWs1bI')
