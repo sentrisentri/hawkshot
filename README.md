@@ -1,4 +1,4 @@
-# hawkshot
+# Hawkshot
 
 ## Todo
 
