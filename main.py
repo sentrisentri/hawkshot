@@ -5,64 +5,11 @@ import json
 import requests
 import asyncio
 import math
-
+import utils
 
 client = commands.Bot(command_prefix="!")
-
-
-game_modes = {
-    400: "Normal Draft",
-    420: "Ranked Solo/Duo",
-    430: "Normal Blind",
-    440: "Ranked Flex",
-}
-
-
-routings = {
-    "br1": "americas",
-    "eun1": "europe",
-    "euw1": "europe",
-    "jp1": "asia",
-    "kr": "asia",
-    "la1": "americas",
-    "la2": "americas",
-    "na1": "americas",
-    "oc1": "americas",
-    "tr1": "europe",
-    "ru": "europe",
-    "ph2": "asia",
-    "sg2": "asia",
-    "tw2": "asia",
-    "vn2": "asia",
-}
-
-
-region_names = {
-    "br1": "Brazil",
-    "eun1": "Europe Nordic & East",
-    "euw1": "Europe West",
-    "jp1": "Japan",
-    "kr": "Korea",
-    "la1": "Latin America North",
-    "la2": "Latin America South",
-    "na1": "North America",
-    "oc1": "Oceania",
-    "tr1": "Turkey",
-    "ru": "Russia",
-    "ph2": "Philippines",
-    "sg2": "Singapore",
-    "tw2": "Taiwan",
-    "vn2": "Vietnam",
-}
-
-
-map_names = {11: "Summoner's Rift", 12: "Howling Abyss"}
 testingserverid = 1066097924653723848
-
-headers = {"X-Riot-Token": "RGAPI-b28f9c35-517d-4d75-9e54-447a6a2a0630"}
-
 ddragonver = "13.12.1"
-
 
 @client.event
 async def on_ready():
@@ -73,9 +20,7 @@ async def on_ready():
     print("Bot is ready")
     await check_account()
 
-
 riot_accounts = []  # List to store Riot accounts
-
 
 @client.slash_command(guild_ids=[testingserverid])
 async def link_riot(
@@ -124,7 +69,7 @@ async def link_riot(
     # fetch the method from the api
     url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
     # fetch the response and store it
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=utils.headers)
 
     if response.status_code != 200:  # if the respone is bad
         # output for user
@@ -133,7 +78,7 @@ async def link_riot(
 
     puuid = response.json()["puuid"]  # fetch the puuid and store it
     # get the match ids and store it in match_response
-    match_response = await get_match_ids(puuid, region)
+    match_response = await utils.get_match_ids(puuid, region)
 
     if user:  # if user is not None
         # add the channelid to the channel array
@@ -171,69 +116,23 @@ async def link_riot(
             f"Successfully linked Riot account {summoner_name} ({region}) to your Discord account!"
         )
 
-
-async def get_match_ids(puuid, region):
-    routing = get_routing(region)
-    match_url = (
-        f"https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
-    )
-    match_response = requests.get(match_url, headers=headers)
-
-    if match_response.status_code == 200:
-        match_data = match_response.json()
-        return match_data
-    else:
-        return None
-
-
-async def get_match_data(match_id, region):
-    routing = get_routing(region)
-    match_url = f"https://{routing}.api.riotgames.com/lol/match/v5/matches/{match_id}"
-    match_response = requests.get(match_url, headers=headers)
-
-    if match_response.status_code == 200:
-        match_data = match_response.json()
-        return match_data
-    else:
-        return None
-
-
-def get_routing(region):
-    return routings.get(region)
-
-
-async def get_map_name(map_id):
-    return map_names.get(map_id, "map name")
-
-
-def get_region(region):
-    return region_names.get(region)
-
-
-async def get_game_mode(game_mode):
-    return game_modes.get(game_mode, "game mode")
-
-
 async def check_account():
     while True:
-        global wingame
-        global losegame
-
         if len(riot_accounts) == 0:
             print("No Riot accounts to check")
             await asyncio.sleep(20)
             continue
 
         for account in riot_accounts:
-            match_ids = await get_match_ids(account["puuid"], account["region"])
+            match_ids = await utils.get_match_ids(account["puuid"], account["region"])
             if match_ids is None:
                 continue
 
             if match_ids[0] != account["last_match"]:
                 print("New match found")
                 account["last_match"] = match_ids[0]
-                match_data = await get_match_data(
-                    account["last_match"], account["region"]
+                match_data = await utils.get_match_data(
+                    "EUW1_6417088370", account["region"]
                 )
 
                 participantObj = None
@@ -252,20 +151,23 @@ async def check_account():
                 kills = participantObj["kills"]
                 deaths = participantObj["deaths"]
                 assists = participantObj["assists"]
-                queueId = await get_game_mode(match_data["info"]["queueId"])
-                mapID = await get_map_name(match_data["info"]["mapId"])
+                queueId = await utils.get_game_mode(match_data["info"]["queueId"])
+                mapID = await utils.get_map_name(match_data["info"]["mapId"])
                 gameDuration = match_data["info"]["gameDuration"]
                 minionKills = int(participantObj["totalMinionsKilled"]) + int(
                     participantObj["neutralMinionsKilled"]
                 )
                 minutes = math.floor(int(gameDuration) / 60)
-                kdaratio = round(((kills + assists) / deaths), 2)
+                
+                kdaratio = round(((kills + assists) / 1 if deaths == 0 else deaths ), 2)
 
                 embed = nextcord.Embed(
-                    title=(account["summoner_name"]) + " has won their match!"
-                    if participantObj["win"]
+                    title=(account["summoner_name"]) + " has won their match!" if participantObj["win"]
+                    else (account["summoner_name"] + " has remaked their match") if gameDuration <=300 and (participant["gameEndedInEarlySurrender"]) == True
                     else (account["summoner_name"]) + " has lost their match!",
-                    color=0x00FF00 if participantObj["win"] else 0xFF0000,
+                    color=0x00FF00 if participantObj["win"] 
+                    else 0xe1e1e1 if gameDuration <=300 and (participant["gameEndedInEarlySurrender"]) == True
+                    else 0xFF0000,
                 )
                 embed.set_thumbnail(url=thumbnail_url)
                 embed.set_footer(
@@ -274,7 +176,7 @@ async def check_account():
                     + str(int(gameDuration) % 60)
                     + " Seconds"
                     + " - "
-                    + get_region(account["region"])
+                    + utils.get_region(account["region"])
                     + " - "
                     + "League of Legends"
                 )
