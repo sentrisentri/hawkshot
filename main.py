@@ -132,7 +132,7 @@ async def check_account():
                 print("New match found")
                 account["last_match"] = match_ids[0]
                 match_data = await utils.get_match_data(
-                    "EUW1_6417088370", account["region"]
+                    account["last_match"], account["region"]
                 )
 
                 participantObj = None
