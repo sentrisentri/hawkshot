@@ -1,7 +1,9 @@
 import requests
+import os
+
 
 testingserverid = 1066097924653723848
-headers = {"X-Riot-Token": "RGAPI-86b5164a-f3cb-4332-96b8-7c68b0030709"}
+headers = {"X-Riot-Token": os.getenv("API_KEY")}
 
 game_modes = {
     400: "Normal Draft",

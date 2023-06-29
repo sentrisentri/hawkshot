@@ -6,6 +6,11 @@ import requests
 import asyncio
 import math
 import utils
+import dotenv
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 client = commands.Bot(command_prefix="!")
 testingserverid = 1066097924653723848
@@ -21,6 +26,7 @@ async def on_ready():
     await check_account()
 
 riot_accounts = []  # List to store Riot accounts
+
 
 @client.slash_command(guild_ids=[testingserverid])
 async def link_riot(
@@ -101,7 +107,7 @@ async def link_riot(
         riot_account = {  # create a new object to store the riot account
             "region": region,
             "summoner_name": summoner_name,
-            "last_match": match_response.json()[0],
+            "last_match": match_response[0],
             "puuid": puuid,
             "channel": [channel.id],
         }
@@ -115,6 +121,48 @@ async def link_riot(
         await interaction.response.send_message(
             f"Successfully linked Riot account {summoner_name} ({region}) to your Discord account!"
         )
+
+
+@client.slash_command(guild_ids=[testingserverid])
+async def unlink_riot(
+    interaction: nextcord.Interaction,
+    summoner_name: str,
+        region: str = SlashOption(
+        name="region",
+        description="Please pick a region",
+        choices={
+            "EUW": "euw1",
+            "NA": "na1",
+            "EUNE": "eun1",
+            "KR": "kr",
+            "JP": "jp1",
+            "OCE": "oc1",
+            "BR": "br1",
+            "LAN": "la1",
+            "LAS": "la2",
+            "RU": "ru",
+            "TR": "tr1",
+        },
+    ),
+        
+    channel: nextcord.TextChannel = SlashOption(
+        name="channel",
+        description="Please pick a channel",
+            )
+):
+    
+    user = None
+    for account in riot_accounts:
+        if account["summoner_name"] == summoner_name and account["region"] == region:
+            user = account
+
+    if user:
+        for chanel in user["channel"]:
+            if chanel == channel.id:
+                user["channel"].remove(channel.id)
+                await interaction.response.send_message("This user has removed from this channel")
+    else:
+        await interaction.response.send_message("This user is not linked :)")
 
 async def check_account():
     while True:
@@ -208,4 +256,4 @@ async def check_account():
         await asyncio.sleep(20)
 
 
-client.run("MTA2NjA4ODAyMzIyNzM3NTY0Ng.G754WQ.Cal6PlIAZdW76EChkwkrs9PKUdgBV7zI7UXiZo")
+client.run(os.getenv("TOKEN"))
