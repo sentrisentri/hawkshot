@@ -19,13 +19,14 @@ routings = {
     "la1": "americas",
     "la2": "americas",
     "na1": "americas",
-    "oc1": "americas",
+    "oc1": "sea",
     "tr1": "europe",
     "ru": "europe",
-    "ph2": "asia",
-    "sg2": "asia",
-    "tw2": "asia",
-    "vn2": "asia",
+    "ph2": "sea",
+    "sg2": "sea",
+    "tw2": "sea",
+    "vn2": "sea",
+    "th2": "sea"
 }
 
 region_names = {
@@ -44,6 +45,7 @@ region_names = {
     "sg2": "Singapore",
     "tw2": "Taiwan",
     "vn2": "Vietnam",
+    "th2": "Thailand",
 }
 
 map_names = {11: "Summoner's Rift", 12: "Howling Abyss"}
