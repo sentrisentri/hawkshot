@@ -163,7 +163,7 @@ async def check_account():
 
                 embed = nextcord.Embed(
                     title=(account["summoner_name"]) + " has won their match!" if participantObj["win"]
-                    else (account["summoner_name"] + " has remaked their match") if gameDuration <=300 and (participant["gameEndedInEarlySurrender"]) == True
+                    else (account["summoner_name"] + " has remade their match") if gameDuration <=300 and (participant["gameEndedInEarlySurrender"]) == True
                     else (account["summoner_name"]) + " has lost their match!",
                     color=0x00FF00 if participantObj["win"] 
                     else 0xe1e1e1 if gameDuration <=300 and (participant["gameEndedInEarlySurrender"]) == True
