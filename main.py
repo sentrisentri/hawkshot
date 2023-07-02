@@ -207,7 +207,7 @@ async def check_account():
                 )
                 minutes = math.floor(int(gameDuration) / 60)
                 
-                kdaratio = round(((kills + assists) / 1 if deaths == 0 else deaths ), 2)
+                kdaratio = round(((kills + assists) / (1 if deaths == 0 else deaths) ), 2)
 
                 embed = nextcord.Embed(
                     title=(account["summoner_name"]) + " has won their match!" if participantObj["win"]
