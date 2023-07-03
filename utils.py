@@ -10,6 +10,7 @@ game_modes = {
     420: "Ranked Solo/Duo",
     430: "Normal Blind",
     440: "Ranked Flex",
+    450: "ARAM",
 } 
 
 routings = {
@@ -28,7 +29,7 @@ routings = {
     "sg2": "sea",
     "tw2": "sea",
     "vn2": "sea",
-    "th2": "sea"
+    "th2": "sea",
 }
 
 region_names = {

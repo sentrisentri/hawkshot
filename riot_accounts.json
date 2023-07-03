@@ -2,19 +2,13 @@
     {
         "region": "euw1",
         "summoner_name": "sentrisentri",
-        "last_match": "EUW1_6478031381",
+        "last_match": "EUW1_6481301902",
         "puuid": "HXNTb2QKdXFetrqFJg4RHEZqUHuGKK28L0BqkSIIiiVVW_FEfoESQDKrBnlQDAv2eqgGHoIEU2pb5g",
         "channel": [
-            1066097925547106316
-        ]
-    },
-    {
-        "region": "euw1",
-        "summoner_name": "rivalzfb",
-        "last_match": "EUW1_6477802572",
-        "puuid": "NBJyBlPoXIBCTqoiAHw0XyCSml90kf_u_34YlUPhxzIJxBaA377ER9kv3hI8HUM1TYkbeWQc1qismQ",
-        "channel": [
-            1066097925547106316
+            {
+                "Channel ID": 1122966597125021796,
+                "Guild ID": 1066097924653723848
+            }
         ]
     }
 ]

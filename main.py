@@ -14,7 +14,7 @@ load_dotenv()
 
 client = commands.Bot(command_prefix="!")
 testingserverid = 1066097924653723848
-ddragonver = "13.12.1"
+ddragonver = "13.13.1"
 
 @client.event
 async def on_ready():
@@ -28,7 +28,7 @@ async def on_ready():
 riot_accounts = []  # List to store Riot accounts
 
 
-@client.slash_command(guild_ids=[testingserverid])
+@client.slash_command()
 async def link_riot(
     interaction: nextcord.Interaction,
     summoner_name: str,
@@ -52,8 +52,16 @@ async def link_riot(
     channel: nextcord.TextChannel = SlashOption(
         name="channel",
         description="Please pick a channel",
+        
+   
     ),
+    
+    
 ):
+    
+    guild_id = interaction.guild.id
+     
+    
     user = None  # declaring the variable
     for account in riot_accounts:  # iterating the array
         # if the summoner name and region is equal (but not the channel) to any of the ones in the json file
@@ -88,7 +96,7 @@ async def link_riot(
 
     if user:  # if user is not None
         # add the channelid to the channel array
-        user["channel"].append(channel.id)
+        user["channel"].append({"Channel ID": channel.id, "Guild ID": guild_id})
 
         # index the riot_accounts array and iterate through it to see it the summoner name and region is = to the one provided
         for index, account in enumerate(riot_accounts):
@@ -97,7 +105,7 @@ async def link_riot(
                 riot_accounts[index] = user
 
         with open("riot_accounts.json", "w") as f:
-            json.dump(riot_accounts, f, indent=4)  # save it in the json
+            json.dump(riot_accounts, f, indent=4, default=list)  # save it in the json
 
         # output for user
         await interaction.response.send_message(
@@ -109,13 +117,16 @@ async def link_riot(
             "summoner_name": summoner_name,
             "last_match": match_response[0],
             "puuid": puuid,
-            "channel": [channel.id],
+            "channel": [
+                {"Channel ID": channel.id, 
+                "Guild ID": guild_id},
+                ],
         }
 
         riot_accounts.append(riot_account)  # add it to the array
 
         with open("riot_accounts.json", "w") as f:  # save it to the json
-            json.dump(riot_accounts, f, indent=4)
+            json.dump(riot_accounts, f, indent=4, default=list)
 
         # output for the user
         await interaction.response.send_message(
@@ -123,7 +134,7 @@ async def link_riot(
         )
 
 
-@client.slash_command(guild_ids=[testingserverid])
+@client.slash_command()
 async def unlink_riot(
     interaction: nextcord.Interaction,
     summoner_name: str,
@@ -151,6 +162,8 @@ async def unlink_riot(
             )
 ):
     
+    guild_id = interaction.guild.id
+    
     user = None
     for account in riot_accounts:
         if account["summoner_name"] == summoner_name and account["region"] == region:
@@ -158,11 +171,11 @@ async def unlink_riot(
 
     if user:
         for chanel in user["channel"]:
-            if chanel == channel.id:
-                user["channel"].remove(channel.id)
+            if chanel["Channel ID"] == channel.id and chanel["Guild ID"] == guild_id:
+                user["channel"].remove(chanel)
                 await interaction.response.send_message("This user has removed from this channel")
     else:
-        await interaction.response.send_message("This user is not linked :)")
+        await interaction.response.send_message("This user is not linked")
 
 async def check_account():
     while True:
@@ -246,11 +259,12 @@ async def check_account():
                 )
 
                 for channel in account["channel"]:
-                    channel = client.get_channel(channel)
+                    guild = client.get_guild(channel["Guild ID"])
+                    channel = guild.get_channel(channel["Channel ID"])
                     await channel.send(embed=embed)
 
         with open("riot_accounts.json", "w") as f:
-            json.dump(riot_accounts, f, indent=4)
+            json.dump(riot_accounts, f, indent=4, default=list)
             print("Updated the Riot account")
 
         await asyncio.sleep(20)
