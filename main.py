@@ -24,6 +24,7 @@ async def on_ready():
     json_read.close()
     print("Bot is ready")
     await check_account()
+    
 
 riot_accounts = []  # List to store Riot accounts
 
@@ -93,6 +94,7 @@ async def link_riot(
     puuid = response.json()["puuid"]  # fetch the puuid and store it
     # get the match ids and store it in match_response
     match_response = await utils.get_match_ids(puuid, region)
+    tft_match_response = await utils.get_tft_match_ids(puuid, region)
 
     if user:  # if user is not None
         # add the channelid to the channel array
@@ -116,6 +118,7 @@ async def link_riot(
             "region": region,
             "summoner_name": summoner_name,
             "last_match": match_response[0],
+            "tft_last_match": tft_match_response[0],
             "puuid": puuid,
             "channel": [
                 {"Channel ID": channel.id, 
@@ -262,12 +265,60 @@ async def check_account():
                     guild = client.get_guild(channel["Guild ID"])
                     channel = guild.get_channel(channel["Channel ID"])
                     await channel.send(embed=embed)
+                    
+        for account in riot_accounts:
+            tft_match_ids = await utils.get_tft_match_ids(account["puuid"], account["region"])
+            if tft_match_ids is None:
+                continue    
+            
+            if tft_match_ids[0] != account["tft_last_match"]:
+                print("New match found")
+                account["tft_last_match"] = tft_match_ids[0]
+                tft_match_data = await utils.get_tft_match_data(
+                    account["tft_last_match"], account["region"]
+                )   
+                
+                
+                participantObj = None
+                for participant in tft_match_data["info"]["participants"]:
+                    if (participant["puuid"]) == account["puuid"]:
+                        participantObj = participant
+                        break     
+                    
+                tft_embed = nextcord.Embed(
+                title=(account["summoner_name"]) + " has placed 1st in their match!" if participantObj["placement"] == 1 
+                else (account["summoner_name"]) + " has placed 2nd in their match!" if participantObj["placement"] == 2
+                else (account["summoner_name"]) + " has placed 3rd in their match!" if participantObj["placement"] == 3
+                else (account["summoner_name"]) + " has placed 4th in their match!" if participantObj["placement"] == 4
+                else (account["summoner_name"]) + " has placed 5th in their match!" if participantObj["placement"] == 5
+                else (account["summoner_name"]) + " has placed 6th in their match!" if participantObj["placement"] == 6
+                else (account["summoner_name"]) + " has placed 7th in their match!" if participantObj["placement"] == 7
+                else (account["summoner_name"]) + " has placed 8th in their match!",
+                
+                color=0x00FF00 if participantObj["placement"] == 1 
+                else 0xFFFF00 if participantObj["placement"] <= 4
+                else 0xFF0000,
+                )
+                    
+                
+                    
+                for channel in account["channel"]:
+                    guild = client.get_guild(channel["Guild ID"])
+                    channel = guild.get_channel(channel["Channel ID"])
+                    await channel.send(embed=tft_embed)    
+                    
+                    
+                    
+                    
+                    
 
         with open("riot_accounts.json", "w") as f:
             json.dump(riot_accounts, f, indent=4, default=list)
             print("Updated the Riot account")
 
         await asyncio.sleep(20)
+        
+        
 
 
 client.run(os.getenv("TOKEN"))

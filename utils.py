@@ -53,6 +53,19 @@ region_names = {
 
 map_names = {11: "Summoner's Rift", 12: "Howling Abyss"}
 
+async def get_tft_match_ids(puuid, region):
+    routing = get_routing(region)
+    tft_match_url = (
+        f"https://{routing}.api.riotgames.com/tft/match/v1/matches/by-puuid/{puuid}/ids"
+    )
+    tft_match_response = requests.get(tft_match_url, headers=headers)
+    
+    if tft_match_response.status_code == 200:
+        tft_match_data = tft_match_response.json()
+        return tft_match_data
+    else:
+        return None
+
 async def get_match_ids(puuid, region):
     routing = get_routing(region)
     match_url = (
@@ -66,6 +79,22 @@ async def get_match_ids(puuid, region):
     else:
         return None
     
+async def get_tft_match_data(tft_match_id, region):
+    routing = get_routing(region)
+    tft_match_url = f"https://{routing}.api.riotgames.com/tft/match/v1/matches/{tft_match_id}"
+    tft_match_response = requests.get(tft_match_url, headers=headers)
+
+    if tft_match_response.status_code == 200:
+        tft_match_data = tft_match_response.json()
+        return tft_match_data
+    else:
+        return None
+
+
+
+
+
+
 async def get_match_data(match_id, region):
     routing = get_routing(region)
     match_url = f"https://{routing}.api.riotgames.com/lol/match/v5/matches/{match_id}"
