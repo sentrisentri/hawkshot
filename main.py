@@ -289,18 +289,32 @@ async def check_account():
                     
                     
                     
-                    
+                tft_minutes = math.floor(int(tft_match_data["info"]["game_length"])/60)
+                tft_seconds = int(tft_match_data["info"]["game_length"]) % 60    
                     
                 placement = int(participantObj["placement"])
                     
                     
                     
                 tft_embed = nextcord.Embed(
-                    title=(account["summoner_name"]) + " has placed " + str(placement) + ("st" if placement == 1 else "nd" if placement == 2 else "th") + " in their match!",
+                    title=(account["summoner_name"]) + " has placed " + str(placement) + ("st" if placement == 1 else "nd" if placement == 2 else "rd" if placement == 3 else "th") + " in their match!",
                     color=0x00FF00 if placement == 1 
                     else 0xFFFF00 if placement <= 4 
                     else 0xFF0000
-)
+                    
+                )  
+                    
+                    
+                tft_embed.set_footer(
+                    text=str(tft_minutes)
+                    + " Minutes "
+                    + str(tft_seconds)
+                    + " Seconds"
+                    + " - "
+                    + utils.get_region(account["region"])
+                    + " - "
+                    + "League of Legends"
+                )
                     
                 
                     
