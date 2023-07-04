@@ -285,20 +285,22 @@ async def check_account():
                         participantObj = participant
                         break     
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                placement = int(participantObj["placement"])
+                    
+                    
+                    
                 tft_embed = nextcord.Embed(
-                title=(account["summoner_name"]) + " has placed 1st in their match!" if participantObj["placement"] == 1 
-                else (account["summoner_name"]) + " has placed 2nd in their match!" if participantObj["placement"] == 2
-                else (account["summoner_name"]) + " has placed 3rd in their match!" if participantObj["placement"] == 3
-                else (account["summoner_name"]) + " has placed 4th in their match!" if participantObj["placement"] == 4
-                else (account["summoner_name"]) + " has placed 5th in their match!" if participantObj["placement"] == 5
-                else (account["summoner_name"]) + " has placed 6th in their match!" if participantObj["placement"] == 6
-                else (account["summoner_name"]) + " has placed 7th in their match!" if participantObj["placement"] == 7
-                else (account["summoner_name"]) + " has placed 8th in their match!",
-                
-                color=0x00FF00 if participantObj["placement"] == 1 
-                else 0xFFFF00 if participantObj["placement"] <= 4
-                else 0xFF0000,
-                )
+                    title=(account["summoner_name"]) + " has placed " + str(placement) + ("st" if placement == 1 else "nd" if placement == 2 else "th") + " in their match!",
+                    color=0x00FF00 if placement == 1 
+                    else 0xFFFF00 if placement <= 4 
+                    else 0xFF0000
+)
                     
                 
                     
