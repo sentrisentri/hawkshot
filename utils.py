@@ -13,6 +13,17 @@ game_modes = {
     450: "ARAM",
 } 
 
+tft_game_modes = {
+    1101: "Normal",
+    1100: "Ranked",
+    1102: "TFT Tutorial",
+    1130: "Hyper Roll",
+    1160: "Double Up",
+    
+
+}
+
+
 routings = {
     "br1": "americas",
     "eun1": "europe",
@@ -117,3 +128,7 @@ def get_region(region):
 
 async def get_map_name(map_id):
     return map_names.get(map_id, "map name")
+
+
+async def get_tft_game_mode(tft_game_mode):
+    return tft_game_modes.get(tft_game_mode, "game mode")

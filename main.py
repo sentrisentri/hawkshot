@@ -284,20 +284,31 @@ async def check_account():
                     if (participant["puuid"]) == account["puuid"]:
                         participantObj = participant
                         break     
-                    
-                    
-                    
-                    
-                    
-                tft_minutes = math.floor(int(tft_match_data["info"]["game_length"])/60)
-                tft_seconds = int(tft_match_data["info"]["game_length"]) % 60    
+                
+                
+                companion_url = ("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/companions.json")
+                r = requests.get(companion_url)
+                
+                tfticon_url =("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/")   
+                tft_queueId = await utils.get_tft_game_mode(tft_match_data["info"]["queue_id"])        
+                tft_minutes = math.floor(int(participantObj["time_eliminated"])/60)
+                tft_seconds = int(participantObj["time_eliminated"]) % 60    
                     
                 placement = int(participantObj["placement"])
-                    
-                    
-                    
+                stage1 = math.floor(((int(participantObj["last_round"]) - 4)/7) + 2) 
+                stage2 = ((int(participantObj["last_round"]) - 4)%7)     
+                tacticianid = participantObj["companion"]["content_ID"]    
+                
+                
+                companionObj = None    
+                for companion in r.json():
+                    if companion["contentId"] == tacticianid:
+                        companionObj = companion
+
+                icon = companionObj["loadoutsIcon"].replace("/lol-game-data/assets/ASSETS/Loadouts/Companions/", "")
+                thumbnail_url = ("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/") + (icon.lower())
                 tft_embed = nextcord.Embed(
-                    title=(account["summoner_name"]) + " has placed " + str(placement) + ("st" if placement == 1 else "nd" if placement == 2 else "rd" if placement == 3 else "th") + " in their match!",
+                    title=(account["summoner_name"]) + " has placed " + str(placement) +("st" if placement == 1 else "nd" if placement == 2 else "rd" if placement == 3 else "th") + " in their match!",
                     color=0x00FF00 if placement == 1 
                     else 0xFFFF00 if placement <= 4 
                     else 0xFF0000
@@ -313,10 +324,14 @@ async def check_account():
                     + " - "
                     + utils.get_region(account["region"])
                     + " - "
-                    + "League of Legends"
+                    + "Teamfight Tactics"
                 )
-                    
-                
+                tft_embed.add_field(
+                    name=(tft_queueId + " - " +"Set "+ str((tft_match_data["info"]["tft_set_number"]))),
+                    value=("Level "+ str(participantObj["level"]) +  " - " + "Survived to " + str(stage1) + "-" + str(stage2)),
+                    inline=False,
+                )    
+                tft_embed.set_thumbnail(url=thumbnail_url)
                     
                 for channel in account["channel"]:
                     guild = client.get_guild(channel["Guild ID"])
@@ -331,7 +346,6 @@ async def check_account():
         with open("riot_accounts.json", "w") as f:
             json.dump(riot_accounts, f, indent=4, default=list)
             print("Updated the Riot account")
-
         await asyncio.sleep(20)
         
         
