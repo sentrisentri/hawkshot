@@ -299,12 +299,22 @@ async def check_account():
                         participantObj = participant
                         break     
                 
+                matchid = tft_match_data["info"]["queue_id"]
+                tft_url = ("https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/queues.json")
+                tft_gamemode_response = requests.get(tft_url)
+                tft_gamemode_response.json()
+            
+                tftgamemodeObj = None
+                tftgamemodeObj = tft_gamemode_response.json()[str(matchid)]
+                
+                        
+                
                 
                 companion_url = ("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/companions.json")
                 r = requests.get(companion_url)
                 
                 tfticon_url =("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/")   
-                tft_queueId = await utils.get_tft_game_mode(tft_match_data["info"]["queue_id"])        
+                tft_queueId = (tftgamemodeObj["description"])    
                 tft_minutes = math.floor(int(participantObj["time_eliminated"])/60)
                 tft_seconds = int(participantObj["time_eliminated"]) % 60    
                     

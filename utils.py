@@ -2,19 +2,11 @@ import requests
 import os
 
 
-testingserverid = 1066097924653723848
 headers = {"X-Riot-Token": os.getenv("API_KEY")}
 
 
 
-tft_game_modes = {
-    1101: "Normal",
-    1100: "Ranked",
-    1102: "TFT Tutorial",
-    1130: "Hyper Roll",
-    1160: "Double Up",
 
-}
 
 
 routings = {
@@ -124,6 +116,3 @@ def get_region(region):
 
 
 
-
-async def get_tft_game_mode(tft_game_mode):
-    return tft_game_modes.get(tft_game_mode, "game mode")
