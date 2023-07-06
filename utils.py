@@ -118,16 +118,11 @@ async def get_match_data(match_id, region):
 def get_routing(region):
     return routings.get(region)
 
-async def get_game_mode(game_mode):
-    url = ("https://static.developer.riotgames.com/docs/lol/queues.json")
-    gamemode_response = requests.get(url)
-    gamemode_response.json()
 
 def get_region(region):
     return region_names.get(region)
 
-async def get_map_name(map_id):
-    return map_names.get(map_id, "map name")
+
 
 
 async def get_tft_game_mode(tft_game_mode):
