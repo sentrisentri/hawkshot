@@ -5,13 +5,7 @@ import os
 testingserverid = 1066097924653723848
 headers = {"X-Riot-Token": os.getenv("API_KEY")}
 
-game_modes = {
-    400: "Normal Draft",
-    420: "Ranked Solo/Duo",
-    430: "Normal Blind",
-    440: "Ranked Flex",
-    450: "ARAM",
-} 
+
 
 tft_game_modes = {
     1101: "Normal",
@@ -19,7 +13,6 @@ tft_game_modes = {
     1102: "TFT Tutorial",
     1130: "Hyper Roll",
     1160: "Double Up",
-    
 
 }
 
@@ -62,7 +55,7 @@ region_names = {
     "th2": "Thailand",
 }
 
-map_names = {11: "Summoner's Rift", 12: "Howling Abyss"}
+
 
 async def get_tft_match_ids(puuid, region):
     routing = get_routing(region)
@@ -116,12 +109,19 @@ async def get_match_data(match_id, region):
         return match_data
     else:
         return None
-    
+ 
+ 
+
+
+ 
+   
 def get_routing(region):
     return routings.get(region)
 
 async def get_game_mode(game_mode):
-    return game_modes.get(game_mode, "game mode")
+    url = ("https://static.developer.riotgames.com/docs/lol/queues.json")
+    gamemode_response = requests.get(url)
+    gamemode_response.json()
 
 def get_region(region):
     return region_names.get(region)

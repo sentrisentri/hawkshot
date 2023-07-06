@@ -180,6 +180,9 @@ async def unlink_riot(
     else:
         await interaction.response.send_message("This user is not linked")
 
+
+    
+    
 async def check_account():
     while True:
         if len(riot_accounts) == 0:
@@ -198,6 +201,17 @@ async def check_account():
                 match_data = await utils.get_match_data(
                     account["last_match"], account["region"]
                 )
+                
+                url = ("https://static.developer.riotgames.com/docs/lol/queues.json")
+                gamemode_response = requests.get(url)
+                gamemode_response.json()
+            
+                gamemodeObj = None
+                for gamemode in gamemode_response.json():
+                    if gamemode["queueId"] == match_data["info"]["queueId"]:
+                        gamemodeObj = gamemode
+                        
+                        
 
                 participantObj = None
                 for participant in match_data["info"]["participants"]:
@@ -215,8 +229,8 @@ async def check_account():
                 kills = participantObj["kills"]
                 deaths = participantObj["deaths"]
                 assists = participantObj["assists"]
-                queueId = await utils.get_game_mode(match_data["info"]["queueId"])
-                mapID = await utils.get_map_name(match_data["info"]["mapId"])
+                queueId = (gamemodeObj["description"].replace(" games", "",)).replace("5v5", "")
+                mapID = gamemodeObj["map"]
                 gameDuration = match_data["info"]["gameDuration"]
                 minionKills = int(participantObj["totalMinionsKilled"]) + int(
                     participantObj["neutralMinionsKilled"]
@@ -298,6 +312,7 @@ async def check_account():
                 stage1 = math.floor(((int(participantObj["last_round"]) - 4)/7) + 2) 
                 stage2 = ((int(participantObj["last_round"]) - 4)%7)     
                 tacticianid = participantObj["companion"]["content_ID"]    
+            
                 
                 
                 companionObj = None    
