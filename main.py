@@ -24,7 +24,6 @@ async def on_ready():
     json_read.close()
     print("Bot is ready")
     await check_account()
-    
 
 riot_accounts = []  # List to store Riot accounts
 
@@ -85,7 +84,7 @@ async def link_riot(
     url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
     # fetch the response and store it
     response = requests.get(url, headers=utils.headers)
-
+    
     if response.status_code != 200:  # if the respone is bad
         # output for user
         await interaction.response.send_message(response.status_code)

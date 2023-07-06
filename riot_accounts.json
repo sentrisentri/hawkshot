@@ -37,5 +37,18 @@
                 "Guild ID": 892044202031083531
             }
         ]
+    },
+    {
+        "region": "euw1",
+        "summoner_name": "sympp",
+        "last_match": "EUW1_6294630354",
+        "tft_last_match": "EUW1_6452498858",
+        "puuid": "-j3uPML8OMxU_Ey4lxuFuFghsJmwsZd9h7t87muyiORrVenHWUOrPZFWwWtXqMVI8ncQzfhXu11haw",
+        "channel": [
+            {
+                "Channel ID": 1125485187879424021,
+                "Guild ID": 892044202031083531
+            }
+        ]
     }
 ]

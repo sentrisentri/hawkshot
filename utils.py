@@ -1,13 +1,10 @@
 import requests
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 headers = {"X-Riot-Token": os.getenv("API_KEY")}
-
-
-
-
-
 
 routings = {
     "br1": "americas",
