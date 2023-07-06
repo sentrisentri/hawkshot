@@ -88,7 +88,7 @@ async def link_riot(
 
     if response.status_code != 200:  # if the respone is bad
         # output for user
-        await interaction.response.send_message("Bad Response")
+        await interaction.response.send_message(response.status_code)
         return  # stop the bot
 
     puuid = response.json()["puuid"]  # fetch the puuid and store it
