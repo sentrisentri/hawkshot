@@ -11,9 +11,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-client = commands.Bot(command_prefix="!")
-testingserverid = 1066097924653723848
+activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="your games")
+client = commands.Bot(command_prefix="!", activity=activity, status=nextcord.Status.do_not_disturb)
 ddragonver = "13.13.1"
 
 @client.event
@@ -28,8 +27,9 @@ async def on_ready():
 riot_accounts = []  # List to store Riot accounts
 
 
+      
 @client.slash_command()
-async def link_riot(
+async def watch(
     interaction: nextcord.Interaction,
     summoner_name: str,
     region: str = SlashOption(
@@ -137,7 +137,7 @@ async def link_riot(
 
 
 @client.slash_command()
-async def unlink_riot(
+async def unwatch(
     interaction: nextcord.Interaction,
     summoner_name: str,
         region: str = SlashOption(
