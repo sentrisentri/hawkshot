@@ -26,7 +26,7 @@ async def on_ready():
 
 riot_accounts = []  # List to store Riot accounts
 
-
+pp = "pp"
       
 @client.slash_command()
 async def watch(
