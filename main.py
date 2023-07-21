@@ -110,7 +110,7 @@ async def watch(
 
         # output for user
         await interaction.response.send_message(
-            f"Successfully linked Riot account {summoner_name} ({region}) to a new channel!"
+            f"Successfully watching Riot account {summoner_name} ({region}) in this channel!"
         )
     else:  # if the user is not valid
         riot_account = {  # create a new object to store the riot account
@@ -132,7 +132,7 @@ async def watch(
 
         # output for the user
         await interaction.response.send_message(
-            f"Successfully linked Riot account {summoner_name} ({region}) to your Discord account!"
+            f"Successfully watching Riot account {summoner_name} ({region}) in this channel!"
         )
 
 
@@ -177,12 +177,13 @@ async def unwatch(
                 user["channel"].remove(chanel)
                 await interaction.response.send_message("This user has removed from this channel")
     else:
-        await interaction.response.send_message("This user is not linked")
+        await interaction.response.send_message("This user is not being watched in this channel")
 
 
     
     
 async def check_account():
+    global embed
     while True:
         if len(riot_accounts) == 0:
             print("No Riot accounts to check")
@@ -201,15 +202,14 @@ async def check_account():
                     account["last_match"], account["region"]
                 )
                 
-                url = ("https://static.developer.riotgames.com/docs/lol/queues.json")
-                gamemode_response = requests.get(url)
+                
+                lol_mode_id = match_data["info"]["queueId"]
+                lol_url = ("https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/queues.json")
+                gamemode_response = requests.get(lol_url)
                 gamemode_response.json()
             
                 gamemodeObj = None
-                for gamemode in gamemode_response.json():
-                    if gamemode["queueId"] == match_data["info"]["queueId"]:
-                        gamemodeObj = gamemode
-                        
+                gamemodeObj = gamemode_response.json()[str(lol_mode_id)]       
                         
 
                 participantObj = None
@@ -217,6 +217,19 @@ async def check_account():
                     if (participant["puuid"]) == account["puuid"]:
                         participantObj = participant
                         break
+                    
+                
+                mapid = match_data["info"]["mapId"]
+                mapurl = ("https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/maps.json")    
+                mapObj = None
+                map_response = requests.get(mapurl)
+                map_response.json()
+                
+                for maps in map_response.json():
+                    if maps["id"] == mapid:
+                        mapObj = maps
+                        break
+                
 
                 thumbnail_url = (
                     "https://ddragon.leagueoflegends.com/cdn/"
@@ -225,17 +238,19 @@ async def check_account():
                     + participantObj["championName"]
                     + ".png"
                 )
-                kills = participantObj["kills"]
+                kills = (participantObj["kills"])
                 deaths = participantObj["deaths"]
                 assists = participantObj["assists"]
+                damage = participantObj["totalDamageDealtToChampions"]
                 queueId = (gamemodeObj["description"].replace(" games", "",)).replace("5v5", "")
-                mapID = gamemodeObj["map"]
+                
                 gameDuration = match_data["info"]["gameDuration"]
                 minionKills = int(participantObj["totalMinionsKilled"]) + int(
                     participantObj["neutralMinionsKilled"]
                 )
-                minutes = math.floor(int(gameDuration) / 60)
                 
+                minutes = math.floor(int(gameDuration) / 60)
+                csm = str(round(minionKills / (minutes), 2))
                 kdaratio = round(((kills + assists) / (1 if deaths == 0 else deaths) ), 2)
 
                 embed = nextcord.Embed(
@@ -258,7 +273,7 @@ async def check_account():
                     + "League of Legends"
                 )
                 embed.add_field(
-                    name=(queueId + " - " + (mapID)),
+                    name=((queueId) + ("" if lol_mode_id == 1700 else " - " + mapObj["name"])),
                     value=str(kills)
                     + "/"
                     + str(deaths)
@@ -267,16 +282,17 @@ async def check_account():
                     + " - "
                     + str(kdaratio)
                     + " Ratio\n"
-                    + str(minionKills)
-                    + " CS - "
-                    + str(round(minionKills / (minutes), 2))
-                    + " CS/M",
+                    + (("")if lol_mode_id == 1700 else str(minionKills))
+                    + (("")if lol_mode_id == 1700 else " CS - ")
+                    + (str(damage if lol_mode_id == 1700 else csm))
+                    + (" Damage" if lol_mode_id == 1700 else " CS/M"),
                     inline=False,
                 )
 
                 for channel in account["channel"]:
                     guild = client.get_guild(channel["Guild ID"])
                     channel = guild.get_channel(channel["Channel ID"])
+                    
                     await channel.send(embed=embed)
                     
         for account in riot_accounts:
@@ -372,7 +388,38 @@ async def check_account():
             print("Updated the Riot account")
         await asyncio.sleep(20)
         
-        
+# @client.slash_command()
+# async def last_game(
+#     interaction: nextcord.Interaction,
+#     summoner_name: str,
+##     region: str = SlashOption(
+#         name="region",
+#         description="Please pick a region",
+#         choices={
+#             "EUW": "euw1",
+#             "NA": "na1",
+#             "EUNE": "eun1",
+#             "KR": "kr",
+#             "JP": "jp1",
+#             "OCE": "oc1",
+#             "BR": "br1",
+#             "LAN": "la1",
+#             "LAS": "la2",
+#             "RU": "ru",
+#             "TR": "tr1",
+#         },
+#     ),
+  
+    
+# ):        
+#     user = None
+#     for account in riot_accounts:
+#         if account["summoner_name"] == summoner_name and account["region"] == region:
+#             user = account
 
+#     if user:
+#         await interaction.send(embed=embed)
+#     else:
+#         await interaction.response.send_message("This user is not linked")
 
 client.run(os.getenv("TOKEN"))
