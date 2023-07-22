@@ -11,11 +11,11 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="your games")
+activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="Fixing the bot (doesnt make sense idc)")
 client = commands.Bot(
     command_prefix="!", activity=activity, status=nextcord.Status.do_not_disturb
 )
-ddragonver = "13.13.1"
+ddragonver = "13.14.1"
 
 
 @client.event
@@ -115,8 +115,8 @@ async def watch(
         riot_account = {  # create a new object to store the riot account
             "region": region,
             "summoner_name": summoner_name,
-            "last_match": match_response[0],
-            "tft_last_match": tft_match_response[0],
+            "last_match": None if len(match_response) == 0  else match_response[0],
+            "tft_last_match": None if len(tft_match_response) == 0 else tft_match_response[0],
             "puuid": puuid,
             "channel": [
                 {"Channel ID": channel.id, "Guild ID": guild_id},
@@ -326,14 +326,15 @@ async def check_account():
             tft_match_ids = await utils.get_tft_match_ids(
                 account["puuid"], account["region"]
             )
-            if tft_match_ids is None:
+            
+            if len(tft_match_ids) == 0:
                 continue
-
+            
             if tft_match_ids[0] != account["tft_last_match"]:
                 print("New match found")
                 account["tft_last_match"] = tft_match_ids[0]
                 tft_match_data = await utils.get_tft_match_data(
-                    account["tft_last_match"], account["region"]
+                account["tft_last_match"], account["region"]
                 )
 
                 participantObj = None
