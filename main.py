@@ -327,7 +327,7 @@ async def check_account():
                 account["puuid"], account["region"]
             )
             
-            if len(tft_match_ids) == 0:
+            if tft_match_ids == None:
                 continue
             
             if tft_match_ids[0] != account["tft_last_match"]:
