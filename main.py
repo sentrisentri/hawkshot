@@ -326,8 +326,8 @@ async def check_account():
             tft_match_ids = await utils.get_tft_match_ids(
                 account["puuid"], account["region"]
             )
-            
-            if tft_match_ids == None:
+
+            if tft_match_ids is None or len(tft_match_ids) == 0:
                 continue
             
             if tft_match_ids[0] != account["tft_last_match"]:
