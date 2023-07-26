@@ -15,7 +15,7 @@ activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="Fixing t
 client = commands.Bot(
     command_prefix="!", activity=activity, status=nextcord.Status.do_not_disturb
 )
-ddragonver = "13.14.1"
+
 
 
 @client.event
@@ -30,7 +30,6 @@ async def on_ready():
 
 riot_accounts = []  # List to store Riot accounts
 
-pp = "pp"
 
 
 @client.slash_command()
@@ -236,11 +235,11 @@ async def check_account():
                         break
 
                 thumbnail_url = (
-                    "https://ddragon.leagueoflegends.com/cdn/"
-                    + ddragonver
-                    + "/img/champion/"
-                    + participantObj["championName"]
-                    + ".png"
+                    "https://raw.communitydragon.org/pbe/game/assets/characters/"
+                    + (participantObj["championName"]).lower()
+                    + "/hud/"
+                    + (participantObj["championName"]).lower()
+                    + "_square.png"
                 )
                 kills = participantObj["kills"]
                 deaths = participantObj["deaths"]
@@ -329,6 +328,7 @@ async def check_account():
                 for channel in account["channel"]:
                     guild = client.get_guild(channel["Guild ID"])
                     channel = guild.get_channel(channel["Channel ID"])
+                    print(thumbnail_url)
 
                     await channel.send(embed=embed)
 
