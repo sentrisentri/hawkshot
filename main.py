@@ -235,11 +235,10 @@ async def check_account():
                         break
 
                 thumbnail_url = (
-                    "https://raw.communitydragon.org/pbe/game/assets/characters/"
-                    + (participantObj["championName"]).lower()
-                    + "/hud/"
-                    + (participantObj["championName"]).lower()
-                    + "_square.png"
+                    "https://cdn.communitydragon.org/"
+                    + "latest/champion/"
+                    + str(participantObj["championid"])
+                    + "/square"
                 )
                 kills = participantObj["kills"]
                 deaths = participantObj["deaths"]
