@@ -62,6 +62,7 @@ async def watch(
     guild_id = interaction.guild.id
 
     user = None  # declaring the variable
+
     for account in riot_accounts:  # iterating the array
         # if the summoner name and region is equal (but not the channel) to any of the ones in the json file
         if account["summoner_name"] == summoner_name and account["region"] == region:
@@ -78,7 +79,7 @@ async def watch(
                     "This Riot account is already in this channel."
                 )
                 return  # stop bot
-
+            
     # fetch the method from the api
     url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
     # fetch the response and store it
@@ -86,7 +87,10 @@ async def watch(
 
     if response.status_code != 200:  # if the respone is bad
         # output for user
-        await interaction.response.send_message(response.status_code)
+        if response.status_code == 404:
+            await interaction.response.send_message("Summoner not found")
+        else:
+            await interaction.response.send_message(response.status_code + ": API Key is probably expired, pls wait")
         return  # stop the bot
 
     puuid = response.json()["puuid"]  # fetch the puuid and store it
@@ -94,6 +98,11 @@ async def watch(
     match_response = await utils.get_match_ids(puuid, region)
     tft_match_response = await utils.get_tft_match_ids(puuid, region)
 
+    if summoner_name == "rivalzfb":
+        await interaction.response.send_message("You cannot watch this user")
+        return
+    
+    
     if user:  # if user is not None
         # add the channelid to the channel array
         user["channel"].append({"Channel ID": channel.id, "Guild ID": guild_id})
@@ -106,6 +115,7 @@ async def watch(
 
         with open("riot_accounts.json", "w") as f:
             json.dump(riot_accounts, f, indent=4, default=list)  # save it in the json
+            
 
         # output for user
         await interaction.response.send_message(
