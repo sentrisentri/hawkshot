@@ -72,7 +72,7 @@ async def watch(
         channels = user["channel"]
 
         for chan in channels:  # iterate the channels array
-            if chan == channel.id:  # if the channel inputted is already in the array
+            if chan["Channel ID"] == channel.id and chan["Guild ID"] == guild_id:  # if the channel inputted is already in the array
                 # output for user
                 await interaction.response.send_message(
                     "This Riot account is already in this channel."
@@ -105,13 +105,13 @@ async def watch(
     if user:  # if user is not None
         # add the channelid to the channel array
         user["channel"].append({"Channel ID": channel.id, "Guild ID": guild_id})
-
         # index the riot_accounts array and iterate through it to see it the summoner name and region is = to the one provided
         for index, account in enumerate(riot_accounts):
             if user["summoner_name"] == summoner_name and user["region"] == region:
                 # set the channelids in the array to the one provided
                 riot_accounts[index] = user
-
+                break
+        
         with open("riot_accounts.json", "w") as f:
             json.dump(riot_accounts, f, indent=4, default=list)  # save it in the json
             
@@ -125,13 +125,18 @@ async def watch(
             "region": region,
             "summoner_name": summoner_name,
             "last_match": None if len(match_response) == 0  else match_response[0],
-            "tft_last_match": None if len(tft_match_response) == 0 else tft_match_response[0],
+            "tft_last_match": None, #if len(tft_match_response) == 0 else tft_match_response[0],
             "puuid": puuid,
+            "tft_id": None, 
             "channel": [
                 {"Channel ID": channel.id, "Guild ID": guild_id},
             ],
+            
+            
         }
-
+        
+        riot_account["tft_id"] = await utils.get_tft_puuid(summoner_name, region)
+        riot_account["tft_last_match"] = await utils.get_tft_match_ids(riot_account["tft_id"], region)
         riot_accounts.append(riot_account)  # add it to the array
 
         with open("riot_accounts.json", "w") as f:  # save it to the json
@@ -190,7 +195,6 @@ async def unwatch(
 
 
 async def check_account():
-    global embed
     while True:
         if len(riot_accounts) == 0:
             print("No Riot accounts to check")
@@ -237,7 +241,7 @@ async def check_account():
                 thumbnail_url = (
                     "https://cdn.communitydragon.org/"
                     + "latest/champion/"
-                    + str(participantObj["championid"])
+                    + str(participantObj["championId"])
                     + "/square"
                 )
                 kills = participantObj["kills"]
@@ -262,7 +266,7 @@ async def check_account():
                     ((kills + assists) / (1 if deaths == 0 else deaths)), 2
                 )
 
-                embed = nextcord.Embed(
+                lol_embed = nextcord.Embed(
                     title=(
                         (account["summoner_name"])
                         + " has placed "
@@ -286,15 +290,15 @@ async def check_account():
                         and participant["gameEndedInEarlySurrender"] == True
                         else (account["summoner_name"] + " has lost their match!")
                     ),
-                    color=0x00FF00
+                    color=0x32dc65
                     if participantObj["win"]
                     else 0xE1E1E1
                     if gameDuration <= 300
                     and participant["gameEndedInEarlySurrender"] == True
-                    else 0xFF0000,
+                    else 0xFA4453,
                 )
-                embed.set_thumbnail(url=thumbnail_url)
-                embed.set_footer(
+                lol_embed.set_thumbnail(url=thumbnail_url)
+                lol_embed.set_footer(
                     text=str(minutes)
                     + " Minutes "
                     + str(int(gameDuration) % 60)
@@ -304,7 +308,7 @@ async def check_account():
                     + " - "
                     + "League of Legends"
                 )
-                embed.add_field(
+                lol_embed.add_field(
                     name=(
                         (queueId)
                         + ("" if lol_mode_id == 1700 else " - " + mapObj["name"])
@@ -329,7 +333,7 @@ async def check_account():
                     channel = guild.get_channel(channel["Channel ID"])
                     print(thumbnail_url)
 
-                    await channel.send(embed=embed)
+                    await channel.send(embed=lol_embed)
 
         for account in riot_accounts:
             tft_match_ids = await utils.get_tft_match_ids(
@@ -398,11 +402,11 @@ async def check_account():
                         else "th"
                     )
                     + " in their match!",
-                    color=0x00FF00
+                    color=0x32dc65
                     if placement == 1
-                    else 0xFFFF00
+                    else 0xFFA600
                     if placement <= 4
-                    else 0xFF0000,
+                    else 0xFA4453,
                 )
 
                 tft_embed.set_footer(
@@ -446,6 +450,65 @@ async def check_account():
         await asyncio.sleep(20)
 
 
+@client.slash_command()
+async def profile(
+    interaction: nextcord.Interaction,
+    summoner_name: str,
+    region: str = SlashOption(
+        name="region",
+        description="Please pick a region",
+        choices={
+            "EUW": "euw1",
+            "NA": "na1",
+            "EUNE": "eun1",
+            "KR": "kr",
+            "JP": "jp1",
+            "OCE": "oc1",
+            "BR": "br1",
+            "LAN": "la1",
+            "LAS": "la2",
+            "RU": "ru",
+            "TR": "tr1",
+        },
+    ),
+     
+    
+):
+    user = None
+    for account in riot_accounts:
+        if account["summoner_name"] == summoner_name and account["region"] == region:
+            user = account
+            break
+    if user is None:
+        await interaction.response.send_message("This user is not linked/does not exist")
+        return
+        
+           
+
+            
+    thumbnail_url = ("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/" + str((await utils.get_summoner_icon(user["summoner_name"], user["region"]))) + ".jpg")     
+        
+    profile_embed = nextcord.Embed( 
+        title = user["summoner_name"] + "'s Profile",
+        description = "Level " + str(await utils.get_summoner_level(user["summoner_name"], user["region"])) +"\nMost Played Champ: " +str(await utils.get_highest_champion_mastery_id(user["summoner_name"], user["region"])),
+        color=0x60A5FA
+        
+    )
+    
+    profile_embed.add_field(
+        name = "LOL Rank",
+        value= ("Solo/Duo Rank: "+(await utils.get_solo_summoner_rank(user["summoner_name"], user["region"])) + "\n" + "Flex Rank: " + (await utils.get_flex_summoner_rank(user["summoner_name"], user["region"]))))
+    
+    profile_embed.add_field(
+        name ="TFT Rank",
+        value=(await utils.get_tft_summoner_rank(user["summoner_name"], user["region"])), inline=False)
+    profile_embed.set_thumbnail(url=thumbnail_url)   
+    
+    await interaction.send(embed=profile_embed)
+            
+
+    
+    
 # @client.slash_command()
 # async def last_game(
 #     interaction: nextcord.Interaction,
@@ -467,6 +530,16 @@ async def check_account():
 #             "TR": "tr1",
 #         },
 #     ),
+#     game: str = SlashOption(
+#         name="game",
+#         description="Please pick a game",
+#         choices = {
+#             "lol": "League of Legends",
+#             "tft": "Teamfight Tactics"
+#         },
+#     ),
+            
+    
 
 
 # ):
@@ -474,10 +547,15 @@ async def check_account():
 #     for account in riot_accounts:
 #         if account["summoner_name"] == summoner_name and account["region"] == region:
 #             user = account
+#         else:
+#             await interaction.response.send_message("This user is not linked/does not exist")
 
 #     if user:
-#         await interaction.send(embed=embed)
+#         await interaction.send(embed=lol_embed)
 #     else:
-#         await interaction.response.send_message("This user is not linked")
+#         await interaction.response.send_message("This user is not linked/does not exist")
+
+
+
 
 client.run(os.getenv("TOKEN"))
