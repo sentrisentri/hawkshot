@@ -45,22 +45,19 @@ region_names = {
     "th2": "Thailand",
 }
 
-
-
 async def get_tft_match_ids(puuid, region):
     routing = get_routing(region)
     tft_match_url = (
         f"https://{routing}.api.riotgames.com/tft/match/v1/matches/by-puuid/{puuid}/ids"
     )
     tft_match_response = requests.get(tft_match_url, headers=tft_headers)
-    tft_match_data = tft_match_response.json()
+    tft_match_ids_json = tft_match_response.json()
     
-    if len(tft_match_data) == 0:
+    if len(tft_match_ids_json) == 0:
         return None
+    
     if tft_match_response.status_code == 200:
-        tft_match_data = tft_match_response.json()
-        print(tft_match_response.status_code)
-        return tft_match_data[0]
+        return tft_match_ids_json
     else:
         return None
 
@@ -70,13 +67,13 @@ async def get_match_ids(puuid, region):
         f"https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
     )
     match_response = requests.get(match_url, headers=headers)
-    match_data = match_response.json()
+    match_ids_json = match_response.json()
 
-    if len(match_data) == 0:
+    if len(match_ids_json) == 0:
         return None
 
     if match_response.status_code == 200:
-        return match_data
+        return match_ids_json
     else:
         return None
     
