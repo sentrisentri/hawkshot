@@ -6,7 +6,6 @@ import requests
 import asyncio
 import math
 import utils
-import dotenv
 from dotenv import load_dotenv
 import os
 
@@ -95,12 +94,13 @@ async def watch(
     puuid = response.json()["puuid"]  # fetch the puuid and store it
     # get the match ids and store it in match_response
     match_response = await utils.get_match_ids(puuid, region)
-    tft_match_response = await utils.get_tft_match_ids(puuid, region)
+
+    tft_summoner_puuid = await utils.get_tft_puuid(summoner_name, region)
+    tft_match_ids = await utils.get_tft_match_ids(tft_summoner_puuid, region)
 
     if summoner_name == "rivalzfb":
         await interaction.response.send_message("You cannot watch this user")
         return
-    
     
     if user:  # if user is not None
         # add the channelid to the channel array
@@ -124,19 +124,15 @@ async def watch(
         riot_account = {  # create a new object to store the riot account
             "region": region,
             "summoner_name": summoner_name,
-            "last_match": None if len(match_response) == 0  else match_response[0],
-            "tft_last_match": None, #if len(tft_match_response) == 0 else tft_match_response[0],
+            "last_match": None if match_response is None else match_response[0],
+            "tft_last_match": None if tft_match_ids is None else tft_match_ids[0],
             "puuid": puuid,
-            "tft_id": None, 
+            "tft_puuid": tft_summoner_puuid, 
             "channel": [
                 {"Channel ID": channel.id, "Guild ID": guild_id},
-            ],
-            
-            
+            ], 
         }
         
-        riot_account["tft_id"] = await utils.get_tft_puuid(summoner_name, region)
-        riot_account["tft_last_match"] = await utils.get_tft_match_ids(riot_account["tft_id"], region)
         riot_accounts.append(riot_account)  # add it to the array
 
         with open("riot_accounts.json", "w") as f:  # save it to the json
@@ -331,13 +327,11 @@ async def check_account():
                 for channel in account["channel"]:
                     guild = client.get_guild(channel["Guild ID"])
                     channel = guild.get_channel(channel["Channel ID"])
-                    print(thumbnail_url)
-
                     await channel.send(embed=lol_embed)
 
         for account in riot_accounts:
             tft_match_ids = await utils.get_tft_match_ids(
-                account["puuid"], account["region"]
+                account["tft_puuid"], account["region"]
             )
 
             if tft_match_ids is None or len(tft_match_ids) == 0:
@@ -352,7 +346,7 @@ async def check_account():
 
                 participantObj = None
                 for participant in tft_match_data["info"]["participants"]:
-                    if (participant["puuid"]) == account["puuid"]:
+                    if (participant["puuid"]) == account["tft_puuid"]:
                         participantObj = participant
                         break
 
