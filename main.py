@@ -181,6 +181,15 @@ async def unwatch(
         for chanel in user["channel"]:
             if chanel["Channel ID"] == channel.id and chanel["Guild ID"] == guild_id:
                 user["channel"].remove(chanel)
+
+                for index, account in enumerate(riot_accounts):
+                    if user["summoner_name"] == summoner_name and user["region"] == region:
+                        riot_accounts[index] = user
+                        break
+
+                with open("riot_accounts.json", "w") as f:
+                    json.dump(riot_accounts, f, indent=4, default=list)
+
                 await interaction.response.send_message(
                     "This user has removed from this channel"
                 )
@@ -334,7 +343,7 @@ async def check_account():
                 account["tft_puuid"], account["region"]
             )
 
-            if tft_match_ids is None or len(tft_match_ids) == 0:
+            if tft_match_ids is None:
                 continue
             
             if tft_match_ids[0] != account["tft_last_match"]:
