@@ -512,51 +512,263 @@ async def profile(
 
     
     
-# @client.slash_command()
-# async def last_game(
-#     interaction: nextcord.Interaction,
-#     summoner_name: str,
-##     region: str = SlashOption(
-#         name="region",
-#         description="Please pick a region",
-#         choices={
-#             "EUW": "euw1",
-#             "NA": "na1",
-#             "EUNE": "eun1",
-#             "KR": "kr",
-#             "JP": "jp1",
-#             "OCE": "oc1",
-#             "BR": "br1",
-#             "LAN": "la1",
-#             "LAS": "la2",
-#             "RU": "ru",
-#             "TR": "tr1",
-#         },
-#     ),
-#     game: str = SlashOption(
-#         name="game",
-#         description="Please pick a game",
-#         choices = {
-#             "lol": "League of Legends",
-#             "tft": "Teamfight Tactics"
-#         },
-#     ),
+@client.slash_command()
+async def last_game(
+    interaction: nextcord.Interaction,
+    summoner_name: str,
+     region: str = SlashOption(
+        name="region",
+        description="Please pick a region",
+        choices={
+            "EUW": "euw1",
+            "NA": "na1",
+            "EUNE": "eun1",
+            "KR": "kr",
+            "JP": "jp1",
+            "OCE": "oc1",
+            "BR": "br1",
+            "LAN": "la1",
+            "LAS": "la2",
+            "RU": "ru",
+            "TR": "tr1",
+        },
+    ),
+    game: str = SlashOption(
+        name="game",
+        description="Please pick a game",
+        choices = {
+            "League of Legends": "lol",
+            "Teamfight Tactics": "tft"
+        },
+    ),
             
     
 
 
-# ):
-#     user = None
-#     for account in riot_accounts:
-#         if account["summoner_name"] == summoner_name and account["region"] == region:
-#             user = account
-#         else:
-#             await interaction.response.send_message("This user is not linked/does not exist")
+):
+    user = None
+    for account in riot_accounts:
+        if account["summoner_name"] == summoner_name and account["region"] == region:
+            user = account
+            break
+    if user is None:
+        await interaction.response.send_message("This user is not linked/does not exist")
+        return
 
-#     if user:
-#         await interaction.send(embed=lol_embed)
-#     else:
-#         await interaction.response.send_message("This user is not linked/does not exist")
+    if user:
+        if game == "lol":
+                match_data = await utils.get_match_data(account["last_match"], account["region"])
+                lol_mode_id = match_data["info"]["queueId"]
+                lol_url = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/queues.json"
+                gamemode_response = requests.get(lol_url)
+                gamemode_response.json()
+
+                gamemodeObj = None
+                gamemodeObj = gamemode_response.json()[str(lol_mode_id)]
+
+                participantObj = None
+                for participant in match_data["info"]["participants"]:
+                    if (participant["puuid"]) == account["puuid"]:
+                        participantObj = participant
+                        break
+
+                mapid = match_data["info"]["mapId"]
+                mapurl = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/maps.json"
+                mapObj = None
+                map_response = requests.get(mapurl)
+                map_response.json()
+
+                for maps in map_response.json():
+                    if maps["id"] == mapid:
+                        mapObj = maps
+                        break
+
+                thumbnail_url = (
+                    "https://cdn.communitydragon.org/"
+                    + "latest/champion/"
+                    + str(participantObj["championId"])
+                    + "/square"
+                )
+                kills = participantObj["kills"]
+                deaths = participantObj["deaths"]
+                assists = participantObj["assists"]
+                damage = participantObj["totalDamageDealtToChampions"]
+                queueId = (
+                    gamemodeObj["description"].replace(
+                        " games",
+                        "",
+                    )
+                ).replace("5v5", "")
+
+                gameDuration = match_data["info"]["gameDuration"]
+                minionKills = int(participantObj["totalMinionsKilled"]) + int(
+                    participantObj["neutralMinionsKilled"]
+                )
+
+                minutes = math.floor(int(gameDuration) / 60)
+                csm = str(round(minionKills / (minutes), 2))
+                kdaratio = round(
+                    ((kills + assists) / (1 if deaths == 0 else deaths)), 2
+                )
+
+                lol_embed = nextcord.Embed(
+                    title=(
+                        (account["summoner_name"])
+                        + " has placed "
+                        + str(participantObj["placement"])
+                        + (
+                            "st!"
+                            if participantObj["placement"] == 1
+                            else "nd!"
+                            if participantObj["placement"] == 2
+                            else "rd!"
+                            if participantObj["placement"] == 3
+                            else "th!"
+                        )
+                    )
+                    if lol_mode_id == 1700
+                    else (
+                        account["summoner_name"] + " has won their match!"
+                        if participantObj["win"]
+                        else (account["summoner_name"] + " has remade their match!")
+                        if gameDuration <= 300
+                        and participant["gameEndedInEarlySurrender"] == True
+                        else (account["summoner_name"] + " has lost their match!")
+                    ),
+                    color=0x32dc65
+                    if participantObj["win"]
+                    else 0xE1E1E1
+                    if gameDuration <= 300
+                    and participant["gameEndedInEarlySurrender"] == True
+                    else 0xFA4453,
+                )
+                lol_embed.set_thumbnail(url=thumbnail_url)
+                lol_embed.set_footer(
+                    text=str(minutes)
+                    + " Minutes "
+                    + str(int(gameDuration) % 60)
+                    + " Seconds"
+                    + " - "
+                    + utils.get_region(account["region"])
+                    + " - "
+                    + "League of Legends"
+                )
+                lol_embed.add_field(
+                    name=(
+                        (queueId)
+                        + ("" if lol_mode_id == 1700 else " - " + mapObj["name"])
+                    ),
+                    value=str(kills)
+                    + "/"
+                    + str(deaths)
+                    + "/"
+                    + str(assists)
+                    + " - "
+                    + str(kdaratio)
+                    + " Ratio\n"
+                    + (("") if lol_mode_id == 1700 else str(minionKills))
+                    + (("") if lol_mode_id == 1700 else " CS - ")
+                    + (str(damage if lol_mode_id == 1700 else csm))
+                    + (" Damage" if lol_mode_id == 1700 else " CS/M"),
+                    inline=False,
+                )
+                await interaction.send(embed=lol_embed)
+                
+        elif game == "tft":
+                tft_match_data = await utils.get_tft_match_data(account["tft_last_match"], account["region"])
+                if tft_match_data == None:
+                    await interaction.response.send_message("This user has not played a TFT game")
+                    return
+                else: 
+                    tft_match_data = await utils.get_tft_match_data(account["tft_last_match"], account["region"])
+                    participantObj = None
+                    for participant in tft_match_data["info"]["participants"]:
+                        if (participant["puuid"]) == account["tft_puuid"]:
+                            participantObj = participant
+                            break
+
+                    matchid = tft_match_data["info"]["queue_id"]
+                    tft_url = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/queues.json"
+                    tft_gamemode_response = requests.get(tft_url)
+                    tft_gamemode_response.json()
+
+                    tftgamemodeObj = None
+                    tftgamemodeObj = tft_gamemode_response.json()[str(matchid)]
+
+                    companion_url = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/companions.json"
+                    r = requests.get(companion_url)
+                    tft_queueId = tftgamemodeObj["description"]
+                    tft_minutes = math.floor(int(participantObj["time_eliminated"]) / 60)
+                    tft_seconds = int(participantObj["time_eliminated"]) % 60
+
+                    placement = int(participantObj["placement"])
+                    stage1 = math.floor(((int(participantObj["last_round"]) - 4) / 7) + 2)
+                    stage2 = (int(participantObj["last_round"]) - 4) % 7
+                    tacticianid = participantObj["companion"]["content_ID"]
+
+                    companionObj = None
+                    for companion in r.json():
+                        if companion["contentId"] == tacticianid:
+                            companionObj = companion
+
+                    icon = companionObj["loadoutsIcon"].replace(
+                        "/lol-game-data/assets/ASSETS/Loadouts/Companions/", ""
+                    )
+                    thumbnail_url = (
+                        "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/"
+                    ) + (icon.lower())
+                    tft_embed = nextcord.Embed(
+                        title=(account["summoner_name"])
+                        + " has placed "
+                        + str(placement)
+                        + (
+                            "st"
+                            if placement == 1
+                            else "nd"
+                            if placement == 2
+                            else "rd"
+                            if placement == 3
+                            else "th"
+                        )
+                        + " in their match!",
+                        color=0x32dc65
+                        if placement == 1
+                        else 0xFFA600
+                        if placement <= 4
+                        else 0xFA4453,
+                    )
+
+                    tft_embed.set_footer(
+                        text=str(tft_minutes)
+                        + " Minutes "
+                        + str(tft_seconds)
+                        + " Seconds"
+                        + " - "
+                        + utils.get_region(account["region"])
+                        + " - "
+                        + "Teamfight Tactics"
+                    )
+                    tft_embed.add_field(
+                        name=(
+                            tft_queueId
+                            + " - "
+                            + "Set "
+                            + str((tft_match_data["info"]["tft_set_number"]))
+                        ),
+                        value=(
+                            "Level "
+                            + str(participantObj["level"])
+                            + " - "
+                            + "Survived to "
+                            + str(stage1)
+                            + "-"
+                            + str(stage2)
+                        ),
+                        inline=False,
+                    )
+                    tft_embed.set_thumbnail(url=thumbnail_url)
+                
+                await interaction.send(embed=tft_embed)
 
 
 
