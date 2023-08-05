@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="Fixing the bot (doesnt make sense idc)")
+activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="your games")
 client = commands.Bot(
     command_prefix="!", activity=activity, status=nextcord.Status.do_not_disturb
 )
