@@ -124,7 +124,9 @@ async def get_solo_summoner_rank(summoner_name, region):
                 break
             else:
                 solorank = "Unranked"
-                    
+        
+        if solorank == None:
+            solorank = "Unranked"            
         
         if solorank == "Unranked":
             return solorank
@@ -147,7 +149,9 @@ async def get_flex_summoner_rank(summoner_name, region):
             else:
                 flexrank = "Unranked"
                     
-        
+        if flexrank == None:
+            flexrank = "Unranked"
+            
         if flexrank == "Unranked":
             return flexrank
         else:

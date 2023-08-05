@@ -500,7 +500,7 @@ async def profile(
     
     profile_embed.add_field(
         name = "LOL Rank",
-        value= ("Solo/Duo Rank: "+(await utils.get_solo_summoner_rank(user["summoner_name"], user["region"])) + "\n" + "Flex Rank: " + (await utils.get_flex_summoner_rank(user["summoner_name"], user["region"]))))
+        value= ("Solo/Duo Rank: "+str(await utils.get_solo_summoner_rank(user["summoner_name"], user["region"])) + "\n" + "Flex Rank: " + str(await utils.get_flex_summoner_rank(user["summoner_name"], user["region"]))))
     
     profile_embed.add_field(
         name ="TFT Rank",
