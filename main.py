@@ -128,6 +128,9 @@ async def watch(
             "tft_last_match": None if tft_match_ids is None else tft_match_ids[0],
             "puuid": puuid,
             "tft_puuid": tft_summoner_puuid, 
+            #"solo_rank": await utils.get_solo_summoner_rank(summoner_name, region),
+            #"flex_rank": await utils.get_flex_summoner_rank(summoner_name, region),
+            #"tft_rank": await utils.get_tft_summoner_rank(summoner_name, region),
             "channel": [
                 {"Channel ID": channel.id, "Guild ID": guild_id},
             ], 
@@ -199,6 +202,7 @@ async def unwatch(
         )
 
 
+                    
 async def check_account():
     while True:
         if len(riot_accounts) == 0:
@@ -231,7 +235,38 @@ async def check_account():
                     if (participant["puuid"]) == account["puuid"]:
                         participantObj = participant
                         break
-
+                    
+                
+                
+                emoji0 = nextcord.utils.get(client.emojis, name=str(participantObj["item0"]))
+                emoji1 = nextcord.utils.get(client.emojis, name=str(participantObj["item1"]))
+                emoji2 = nextcord.utils.get(client.emojis, name=str(participantObj["item2"]))
+                emoji3 = nextcord.utils.get(client.emojis, name=str(participantObj["item3"]))
+                emoji4 = nextcord.utils.get(client.emojis, name=str(participantObj["item4"]))
+                emoji5 = nextcord.utils.get(client.emojis, name=str(participantObj["item5"]))
+                emoji6 = nextcord.utils.get(client.emojis, name=str(participantObj["item6"]))
+                
+                if emoji0 is None:
+                    emoji0 = ""
+                    
+                if emoji1 is None:
+                    emoji1 = ""
+                
+                if emoji2 is None:
+                    emoji2 = ""
+                    
+                if emoji3 is None:
+                    emoji3 = ""
+                
+                if emoji4 is None:
+                    emoji4 = ""
+                
+                if emoji5 is None:
+                    emoji5 = ""
+                    
+                if emoji6 is None:
+                    emoji6 = ""    
+                
                 mapid = match_data["info"]["mapId"]
                 mapurl = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/maps.json"
                 mapObj = None
@@ -270,7 +305,10 @@ async def check_account():
                 kdaratio = round(
                     ((kills + assists) / (1 if deaths == 0 else deaths)), 2
                 )
-
+                
+                
+                
+                
                 lol_embed = nextcord.Embed(
                     title=(
                         (account["summoner_name"])
@@ -332,7 +370,10 @@ async def check_account():
                     + (" Damage" if lol_mode_id == 1700 else " CS/M"),
                     inline=False,
                 )
-
+                
+                lol_embed.add_field(name=str(emoji0) + str(emoji1) +str(emoji2)+str(emoji3) +str(emoji4)+str(emoji5)+str(emoji6), value="", inline=False)
+                
+          
                 for channel in account["channel"]:
                     guild = client.get_guild(channel["Guild ID"])
                     channel = guild.get_channel(channel["Channel ID"])
@@ -452,6 +493,15 @@ async def check_account():
             print("Updated the Riot account")
         await asyncio.sleep(20)
 
+#async def check_tftrankup():
+    # while True:
+    #     if len(riot_accounts) == 0:
+    #         print("no ranks to check")
+    #         await asyncio.sleep(20)
+    #         continue
+    #     for account in riot_accounts:
+    #         if account["tft_rank"] != await utils.get_tft_summoner_rank(account["summoner_name"], account["region"]):
+                
 
 @client.slash_command()
 async def profile(
@@ -589,6 +639,36 @@ async def last_game(
                     + str(participantObj["championId"])
                     + "/square"
                 )
+                
+                emoji0 = nextcord.utils.get(client.emojis, name=str(participantObj["item0"]))
+                emoji1 = nextcord.utils.get(client.emojis, name=str(participantObj["item1"]))
+                emoji2 = nextcord.utils.get(client.emojis, name=str(participantObj["item2"]))
+                emoji3 = nextcord.utils.get(client.emojis, name=str(participantObj["item3"]))
+                emoji4 = nextcord.utils.get(client.emojis, name=str(participantObj["item4"]))
+                emoji5 = nextcord.utils.get(client.emojis, name=str(participantObj["item5"]))
+                emoji6 = nextcord.utils.get(client.emojis, name=str(participantObj["item6"]))
+                
+                if emoji0 is None:
+                    emoji0 = ""
+                    
+                if emoji1 is None:
+                    emoji1 = ""
+                
+                if emoji2 is None:
+                    emoji2 = ""
+                    
+                if emoji3 is None:
+                    emoji3 = ""
+                
+                if emoji4 is None:
+                    emoji4 = ""
+                
+                if emoji5 is None:
+                    emoji5 = ""
+                    
+                if emoji6 is None:
+                    emoji6 = ""    
+                    
                 kills = participantObj["kills"]
                 deaths = participantObj["deaths"]
                 assists = participantObj["assists"]
@@ -672,6 +752,7 @@ async def last_game(
                     + (" Damage" if lol_mode_id == 1700 else " CS/M"),
                     inline=False,
                 )
+                lol_embed.add_field(name=str(emoji0) + str(emoji1) +str(emoji2)+str(emoji3) +str(emoji4)+str(emoji5)+str(emoji6), value="", inline=False)
                 await interaction.send(embed=lol_embed)
                 
         elif game == "tft":
