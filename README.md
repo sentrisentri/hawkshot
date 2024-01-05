@@ -9,7 +9,4 @@
 - [X] Store senstive data (e.g. API key) in environment variables
 - [x] Add game support for TFT
 - [X] Add unlink command
-- [ ] Add VALORANT support
-- [X] Fix the multiple server issue
-- [ ] Add game mode specific commands
 - [ ] \(Optional) Replace JSON storage with a database (Any of your choice)
