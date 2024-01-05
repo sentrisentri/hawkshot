@@ -44,7 +44,23 @@ region_names = {
     "vn2": "Vietnam",
     "th2": "Thailand",
 }
-
+async def get_current_match(puuid, region):
+    routing = get_routing(region)
+    current_match_url = f"https://{routing}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/{puuid}"
+    current_match_response = requests.get(current_match_url, headers=headers)
+    
+async def get_summoner_name(summoner_name, region):
+    url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
+    # fetch the response and store it
+    name_response = requests.get(url, headers=headers)
+    name_json = name_response.json()
+    print (name_json)
+    return name_json["name"]
+    
+      
+    
+    
+    
 async def get_tft_match_ids(puuid, region):
     routing = get_routing(region)
     tft_match_url = (
@@ -76,7 +92,8 @@ async def get_match_ids(puuid, region):
         return match_ids_json
     else:
         return None
-    
+
+   
 async def get_tft_match_data(tft_match_id, region):
     routing = get_routing(region)
     tft_match_url = f"https://{routing}.api.riotgames.com/tft/match/v1/matches/{tft_match_id}"

@@ -98,9 +98,6 @@ async def watch(
     tft_summoner_puuid = await utils.get_tft_puuid(summoner_name, region)
     tft_match_ids = await utils.get_tft_match_ids(tft_summoner_puuid, region)
 
-    if summoner_name == "rivalzfb":
-        await interaction.response.send_message("You cannot watch this user")
-        return
     
     if user:  # if user is not None
         # add the channelid to the channel array
@@ -118,12 +115,15 @@ async def watch(
 
         # output for user
         await interaction.response.send_message(
-            f"Successfully watching Riot account {summoner_name} ({region}) in this channel!"
+            f"Successfully watching Riot account ({await utils.get_summoner_name(summoner_name, region)}) ({region}) in this channel!"
         )
     else:  # if the user is not valid
+        
+        
+        
         riot_account = {  # create a new object to store the riot account
             "region": region,
-            "summoner_name": summoner_name,
+            "summoner_name": await utils.get_summoner_name(summoner_name, region),
             "last_match": None if match_response is None else match_response[0],
             "tft_last_match": None if tft_match_ids is None else tft_match_ids[0],
             "puuid": puuid,
@@ -851,7 +851,43 @@ async def last_game(
                 
                 await interaction.send(embed=tft_embed)
 
+@client.slash_command()
+async def current_game(
+    interaction: nextcord.Interaction,
+    summoner_name: str,
+    region: str = SlashOption(
+        name="region",
+        description="Please pick a region",
+        choices={
+            "EUW": "euw1",
+            "NA": "na1",
+            "EUNE": "eun1",
+            "KR": "kr",
+            "JP": "jp1",
+            "OCE": "oc1",
+            "BR": "br1",
+            "LAN": "la1",
+            "LAS": "la2",
+            "RU": "ru",
+            "TR": "tr1",
+        },
+    ),
+    
 
 
+):
+    user = None
+    for account in riot_accounts:
+        if account["summoner_name"] == summoner_name and account["region"] == region:
+            user = account
+            break
+    if user is None:
+        await interaction.response.send_message("This user is not linked/does not exist")
+        return
+    
+    if user:
+        print(await utils.get_summoner_id(user["summoner_name"], user["region"]))
+        esid = user["puuid"]
+        print(esid)
 
 client.run(os.getenv("TOKEN"))
