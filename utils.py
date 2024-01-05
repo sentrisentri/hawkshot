@@ -7,6 +7,16 @@ load_dotenv()
 headers = {"X-Riot-Token": os.getenv("API_KEY")}
 tft_headers = {"X-Riot-Token": os.getenv("TFT_API_KEY")}
 
+game_modes = {
+    "490": "Quickplay",
+    "420": "Ranked Solo/Duo",
+    "440": "Ranked Flex",
+    "450": "ARAM",
+    "1700": "Arena",
+    "1300": "Nexus Blitz",
+    "all": "All",
+}
+
 routings = {
     "br1": "americas",
     "eun1": "europe",
@@ -57,7 +67,8 @@ async def get_summoner_name(summoner_name, region):
     print (name_json)
     return name_json["name"]
     
-      
+def get_game_mode(game_mode):
+         return game_modes.get(game_mode)
     
     
     

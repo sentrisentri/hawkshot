@@ -52,6 +52,20 @@ async def watch(
             "TR": "tr1",
         },
     ),
+    game_mode: str = SlashOption(
+        name="gamemode",
+        description="Please pick a game mode",
+        choices={
+            "Quickplay": "490",
+            "Ranked Solo/Duo": "420",
+            "Ranked Flex": "440",
+            "ARAM": "450",
+            "Arena": "1700",
+            "Nexus Blitz": "1300",
+            "All": "all",
+            
+        },
+    ),
     channel: nextcord.TextChannel = SlashOption(
         name="channel",
         description="Please pick a channel",
@@ -71,12 +85,20 @@ async def watch(
         channels = user["channel"]
 
         for chan in channels:  # iterate the channels array
-            if chan["Channel ID"] == channel.id and chan["Guild ID"] == guild_id:  # if the channel inputted is already in the array
+            if chan["Channel ID"] == channel.id and chan["Guild ID"] == guild_id:  # if the channel inputted is already in the array      
                 # output for user
-                await interaction.response.send_message(
-                    "This Riot account is already in this channel."
-                )
-                return  # stop bot
+                if game_mode in chan["game_mode"] or "all" in chan["game_mode"]: 
+                    await interaction.response.send_message(
+                        "This Riot account is already in this channel."
+                    ) 
+                    return           
+                else:
+                    chan["game_mode"].append(game_mode) 
+                    await interaction.response.send_message(
+                        f"Added {utils.get_game_mode(game_mode)} games to this player in this channel."
+                    ) 
+                
+                    return  # stop bot
             
     # fetch the method from the api
     url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
@@ -88,7 +110,7 @@ async def watch(
         if response.status_code == 404:
             await interaction.response.send_message("Summoner not found")
         else:
-            await interaction.response.send_message(response.status_code + ": API Key is probably expired, pls wait")
+            await interaction.response.send_message(response.status_code + ": API Key is probably expired/broken, pls wait")
         return  # stop the bot
 
     puuid = response.json()["puuid"]  # fetch the puuid and store it
@@ -101,7 +123,7 @@ async def watch(
     
     if user:  # if user is not None
         # add the channelid to the channel array
-        user["channel"].append({"Channel ID": channel.id, "Guild ID": guild_id})
+        user["channel"].append({"Channel ID": channel.id, "Guild ID": guild_id, "game_mode": {game_mode}})
         # index the riot_accounts array and iterate through it to see it the summoner name and region is = to the one provided
         for index, account in enumerate(riot_accounts):
             if user["summoner_name"] == summoner_name and user["region"] == region:
@@ -115,7 +137,7 @@ async def watch(
 
         # output for user
         await interaction.response.send_message(
-            f"Successfully watching Riot account ({await utils.get_summoner_name(summoner_name, region)}) ({region}) in this channel!"
+            f"Successfully watching ({await utils.get_summoner_name(summoner_name, region)})'s ({region}) {utils.get_game_mode(game_mode)} games in this channel!"
         )
     else:  # if the user is not valid
         
@@ -127,14 +149,17 @@ async def watch(
             "last_match": None if match_response is None else match_response[0],
             "tft_last_match": None if tft_match_ids is None else tft_match_ids[0],
             "puuid": puuid,
-            "tft_puuid": tft_summoner_puuid, 
+            "tft_puuid": tft_summoner_puuid,
+            
             #"solo_rank": await utils.get_solo_summoner_rank(summoner_name, region),
             #"flex_rank": await utils.get_flex_summoner_rank(summoner_name, region),
             #"tft_rank": await utils.get_tft_summoner_rank(summoner_name, region),
             "channel": [
-                {"Channel ID": channel.id, "Guild ID": guild_id},
+                {"Channel ID": channel.id, "Guild ID": guild_id, "game_mode": {game_mode},},
             ], 
+       
         }
+        
         
         riot_accounts.append(riot_account)  # add it to the array
 
@@ -143,7 +168,7 @@ async def watch(
 
         # output for the user
         await interaction.response.send_message(
-            f"Successfully watching Riot account {summoner_name} ({region}) in this channel!"
+            f"Successfully watching {await utils.get_summoner_name(summoner_name, region)}'s ({region}) {utils.get_game_mode(game_mode)} games in this channel!"
         )
 
 
@@ -375,9 +400,12 @@ async def check_account():
                 
           
                 for channel in account["channel"]:
-                    guild = client.get_guild(channel["Guild ID"])
-                    channel = guild.get_channel(channel["Channel ID"])
-                    await channel.send(embed=lol_embed)
+                    if "all" in channel["game_mode"] or str(lol_mode_id) in channel["game_mode"]:
+                        guild = client.get_guild(channel["Guild ID"])
+                        channel = guild.get_channel(channel["Channel ID"])
+                        await channel.send(embed=lol_embed)
+                    else:
+                        continue
 
         for account in riot_accounts:
             tft_match_ids = await utils.get_tft_match_ids(

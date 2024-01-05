@@ -12,5 +12,5 @@
 - [X] Fix Capitalization Issue
 - [ ] Add Valorant Support
 - [X] Fix Multi-Server Support
-- [ ] Add Multiple game mode support
+- [X] Add Multiple game mode support
 - [ ] \(Optional) Replace JSON storage with a database (Any of your choice)
