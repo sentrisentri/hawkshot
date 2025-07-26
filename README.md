@@ -1,5 +1,5 @@
 # Hawkshot
-Outdated discord bot that tracks League of Legends games and sends them to a server
+Outdated (doesn't support new naming scheme) discord bot that tracks League of Legends games and sends them to a server
 ## Todo
 
 - [x] Add guild support
