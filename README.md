@@ -11,6 +11,7 @@
 - [X] Add unlink command
 - [X] Fix Capitalization Issue
 - [ ] Add Valorant Support
+- [ ] New Naming Scheme (sentrisentri -> SENTRi#rival)
 - [X] Fix Multi-Server Support
 - [X] Add Multiple game mode support
 - [ ] \(Optional) Replace JSON storage with a database (Any of your choice)
