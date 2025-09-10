@@ -149,30 +149,30 @@ _static_cache = {
 
 async def get_queues_data():
     """Cached queue data fetcher"""
-    if _static_cache["queues"] is None:
+    if "queues" not in _static_cache or _static_cache["queues"] is None:
         url = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/queues.json"
         data = await async_get(url)
         if data:
             _static_cache["queues"] = data
-    return _static_cache["queues"]
+    return _static_cache.get("queues")
 
 async def get_maps_data():
     """Cached map data fetcher"""
-    if _static_cache["maps"] is None:
+    if "maps" not in _static_cache or _static_cache["maps"] is None:
         url = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/maps.json"
         data = await async_get(url)
         if data:
             _static_cache["maps"] = data
-    return _static_cache["maps"]
+    return _static_cache.get("maps")
 
 async def get_companions_data():
     """Cached companion data fetcher"""
-    if _static_cache["companions"] is None:
+    if "companions" not in _static_cache or _static_cache["companions"] is None:
         url = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/companions.json"
         data = await async_get(url)
         if data:
             _static_cache["companions"] = data
-    return _static_cache["companions"]
+    return _static_cache.get("companions")
 
 async def find_queue_by_id(queue_id):
     """Find queue info by ID, handling both dict and list formats"""
@@ -251,7 +251,16 @@ async def send_reply(interaction: nextcord.Interaction, content=None, *, embed=N
 
 @client.event
 async def on_ready():
-    global riot_accounts
+    global riot_accounts, _static_cache
+    
+    # Ensure static cache is properly initialized
+    if not isinstance(_static_cache, dict):
+        _static_cache = {}
+    _static_cache.setdefault("queues", None)
+    _static_cache.setdefault("maps", None)
+    _static_cache.setdefault("companions", None)
+    _static_cache.setdefault("last_fetch", {})
+    
     if not DATA_FILE.exists():
         # Create an empty store if missing
         DATA_FILE.write_text("[]", encoding="utf-8")
@@ -294,8 +303,13 @@ async def cleanup():
     global _http_session, _static_cache
     if _http_session and not _http_session.closed:
         await _http_session.close()
-    # Clear caches
-    _static_cache.clear()
+    # Reset cache to initial state instead of clearing completely
+    _static_cache.update({
+        "queues": None,
+        "maps": None,
+        "companions": None,
+        "last_fetch": {}
+    })
 
 async def periodic_cache_cleanup():
     """Periodically clean up old cache entries"""
