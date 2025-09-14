@@ -18,7 +18,19 @@ client = commands.Bot(
 
 
 
-DATA_FILE = Path(__file__).with_name("riot_accounts.json")
+import os
+from pathlib import Path
+
+# Use Azure persistent storage if available, otherwise local
+if os.getenv("AZURE_STORAGE_MOUNT"):
+    DATA_FILE = Path(os.getenv("AZURE_STORAGE_MOUNT")) / "riot_accounts.json"
+elif os.getenv("WEBSITE_SITE_NAME"):  # Azure App Service
+    DATA_FILE = Path("/home/data/riot_accounts.json")
+else:
+    DATA_FILE = Path(__file__).parent / "riot_accounts.json"
+
+# Ensure directory exists
+DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 def _normalize_accounts_for_serialization(accounts: list):
