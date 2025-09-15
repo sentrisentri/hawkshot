@@ -3,6 +3,7 @@ from nextcord.ext import commands
 from nextcord import Interaction, SlashOption
 import json
 import aiohttp
+from aiohttp import web
 import asyncio
 import math
 import utils
@@ -11,6 +12,25 @@ import os
 from pathlib import Path
 
 load_dotenv()
+
+# Health check web server for Azure
+async def health_check(request):
+    return web.Response(text="Bot is running!", status=200)
+
+async def start_health_server():
+    """Start a simple HTTP server for Azure health checks"""
+    app = web.Application()
+    app.router.add_get('/', health_check)
+    app.router.add_get('/health', health_check)
+    
+    # Use Azure's assigned port or default to 8000
+    port = int(os.environ.get('PORT', 8000))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"[hawkshot] Health server started on port {port}")
+
 activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="your games")
 client = commands.Bot(
     command_prefix="!", activity=activity, status=nextcord.Status.do_not_disturb
@@ -264,6 +284,10 @@ async def send_reply(interaction: nextcord.Interaction, content=None, *, embed=N
 @client.event
 async def on_ready():
     global riot_accounts, _static_cache
+    
+    # Start health check server for Azure
+    if os.environ.get('WEBSITE_SITE_NAME'):  # Running on Azure
+        asyncio.create_task(start_health_server())
     
     # Ensure static cache is properly initialized
     if not isinstance(_static_cache, dict):
